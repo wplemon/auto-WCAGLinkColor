@@ -42,7 +42,7 @@ class WCAGLinkColor extends Base {
 	 * @since 1.0
 	 * @var string
 	 */
-	public static $control_ver = '2.0';
+	public static $control_ver = '0.1';
 
 	/**
 	 * Enqueue control related scripts/styles.
@@ -55,10 +55,10 @@ class WCAGLinkColor extends Base {
 		parent::enqueue();
 
 		// Enqueue the script.
-		wp_enqueue_script( 'wplemon-control-auto-links-colorpicker', URL::get_from_path( dirname( dirname( __DIR__ ) ) . '/dist/main.js' ), [ 'customize-controls', 'wp-element', 'jquery', 'customize-base', 'kirki-dynamic-control', 'wp-color-picker' ], time(), false );
+		wp_enqueue_script( 'wplemon-control-auto-links-colorpicker', URL::get_from_path( dirname( dirname( __DIR__ ) ) . '/dist/main.js' ), [ 'customize-controls', 'wp-element', 'jquery', 'customize-base', 'kirki-dynamic-control', 'wp-color-picker' ], self::$control_ver, false );
 
 		// Enqueue the style.
-		wp_enqueue_style( 'wplemon-control-auto-links-colorpicker-style', URL::get_from_path( dirname( __DIR__ ) . '/style.css' ), [], time() );
+		wp_enqueue_style( 'wplemon-control-auto-links-colorpicker-style', URL::get_from_path( dirname( __DIR__ ) . '/style.css' ), [], self::$control_ver );
 	}
 
 	/**

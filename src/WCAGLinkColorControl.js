@@ -71,7 +71,7 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 				textColor={ control.getTextColor() }
 				autoColor={ control.getAutoColor() }
 				recommendedColorsFlat={ control.getRecommendedColorsFlat() }
-				activeMode={ control.getMode() }
+				activeMode={ 'auto' }
 				hue={ control.getHue() }
 			/>,
 			control.container[ 0 ]
@@ -91,8 +91,6 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 	 */
 	ready: function ready() {
 		const control = this;
-
-		control.setMode( control.getMode() );
 
 		// Re-render control when setting changes.
 		control.setting.bind( () => {
@@ -175,13 +173,9 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 				control.backgroundColor = false;
 				control.textColor = false;
 				control.recommendedColors = false;
-				// If auto or recommended mode, change the active color.
-				if ( 'auto' === control.getMode() || 'recommended' === control.getMode() ) {
-					const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
-					control.setting.set( val );
-				} else {
-					control.renderContent();
-				}
+
+				const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
+				control.setting.set( val );
 			}, 100 ) );
 		} );
 
@@ -192,13 +186,9 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 					control.backgroundColor = false;
 					control.textColor = false;
 					control.recommendedColors = false;
-					// If auto or recommended mode, change the active color.
-					if ( 'auto' === control.getMode() || 'recommended' === control.getMode() ) {
-						const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
-						control.setting.set( val );
-					} else {
-						control.renderContent();
-					}
+
+					const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
+					control.setting.set( val );
 				}, 100 ) );
 			} );
 		}
@@ -235,180 +225,17 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		return this.getRecommendedColorsFlat( control.getHue(), forceRecalc )[ 0 ];
 	},
 
-	getMode() {
-		const control = this;
-
-		// If we already have a mode defined return it.
-		if ( control.forcedMode ) {
-			return control.forcedMode;
-		}
-
-		const availableModes = control.getAvailableModes();
-
-		// If we only have 1 mode, return it.
-		if ( 1 === availableModes.length ) {
-			return availableModes[ 0 ];
-		}
-
-		const currentVal = control.setting.get();
-
-		// Check if auto.
-		if ( -1 !== availableModes.indexOf( 'auto' ) && currentVal === control.getAutoColor() ) {
-			return 'auto';
-		}
-
-		// Check if recommended.
-		if ( -1 !== availableModes.indexOf( 'recommended' ) && control.isColorRecommended( currentVal ) ) {
-			return 'recommended';
-		}
-
-		// If custom is available return it, otherwise fallback to the 1st available.
-		return ( -1 !== availableModes.indexOf( 'custom' ) ) ? 'custom' : availableModes[ 0 ];
-	},
-
 	isColorRecommended( color ) {
 		return -1 !== this.getRecommendedColorsFlat().indexOf( color );
 	},
 
-	// Get available modes.
-	getAvailableModes() {
-		const control = this;
-		const availableModes = [];
-		[ 'auto', 'recommended', 'custom' ].forEach( function( mode ) {
-			if ( control.isModeAvailable( mode ) ) {
-				availableModes.push( mode );
-			}
-		} );
-		return availableModes;
-	},
-
-	// Check if a mode is available.
-	isModeAvailable( mode ) {
-		const control = this;
-		if ( ! control.params.choices.show ) {
-			return true;
-		}
-		return ( false !== control.params.choices.show[ mode ] );
-	},
-
-	// getRecommendedColors( checkHue ) {
-	// 	const control = this;
-	// 	const backgroundColor = Color( control.getBackgroundColor() );
-	// 	const textColor = Color( control.getTextColor() );
-	// 	const isDarkBackground = '#000000' !== backgroundColor.getMaxContrastColor().toCSS();
-	// 	const hue = ( 'undefined' !== typeof checkHue ) ? parseInt( checkHue ) : Color( control.setting.get() ).h();
-	// 	const lightnessStepsMap = [
-	// 		{
-	// 			minHue: 20,
-	// 			maxHue: 40,
-	// 			lightness: [ 20, 40 ],
-	// 			step: 2
-	// 		},
-	// 		{
-	// 			minHue: 40,
-	// 			maxHue: 150,
-	// 			lightness: [ 12, 35 ],
-	// 			step: 1.5
-	// 		},
-	// 		{
-	// 			minHue: 150,
-	// 			maxHue: 200,
-	// 			lightness: [ 15, 35 ],
-	// 			step: 1.5
-	// 		},
-	// 		{
-	// 			minHue: 200,
-	// 			maxHue: 250,
-	// 			lightness: [ 21, 45 ],
-	// 			step: 1.5
-	// 		},
-	// 		// Fallback in case none of the above cases.
-	// 		{
-	// 			minHue: 0,
-	// 			maxHue: 359,
-	// 			lightness: [ 27, 42.5 ],
-	// 			step: 1.1
-	// 		}
-	// 	];
-	// 	const minL = () => {
-	// 		for ( let i = 0; i < lightnessStepsMap.length; i++ ) {
-	// 			if ( hue >= lightnessStepsMap[ i ].minHue && hue <= lightnessStepsMap[ i ].maxHue ) {
-	// 				return ( isDarkBackground ) ? 100 - lightnessStepsMap[ i ].lightness[ 1 ] : lightnessStepsMap[ i ].lightness[ 0 ];
-	// 			}
-	// 		}
-	// 	};
-	// 	const maxL = () => {
-	// 		for ( let i = 0; i < lightnessStepsMap.length; i++ ) {
-	// 			if ( hue >= lightnessStepsMap[ i ].minHue && hue <= lightnessStepsMap[ i ].maxHue ) {
-	// 				return ( isDarkBackground ) ? 100 - lightnessStepsMap[ i ].lightness[ 0 ] : lightnessStepsMap[ i ].lightness[ 1 ];
-	// 			}
-	// 		}
-	// 	};
-	// 	const stepLightness = () => {
-	// 		for ( let i = 0; i < lightnessStepsMap.length; i++ ) {
-	// 			if ( hue >= lightnessStepsMap[ i ].minHue && hue <= lightnessStepsMap[ i ].maxHue ) {
-	// 				return lightnessStepsMap[ i ].step;
-	// 			}
-	// 		}
-	// 	};
-
-	// 	control.recommendedColors = [];
-
-	// 	const saturationSteps = [ 40, 50, 55, 60, 62.5, 65, 67.5, 70, 72, 74, 76, 78, 80, 82, 5, 85, 87.5, 90, 95, 100 ];
-	// 	saturationSteps.forEach( function( saturation ) {
-	// 		for ( let lightness = minL(); lightness <= maxL(); lightness += stepLightness() ) {
-	// 			const item = {
-	// 				color: Color( {
-	// 					h: hue,
-	// 					s: saturation,
-	// 					l: lightness
-	// 				} )
-	// 			};
-	// 			item.contrastBackground = item.color.getDistanceLuminosityFrom( backgroundColor );
-	// 			item.contrastText = item.color.getDistanceLuminosityFrom( textColor );
-	// 			item.score = control.getConstrastScore( item.contrastBackground, item.contrastText );
-
-	// 			// Check if the color is already in our array.
-	// 			const colorAlreadyInArray = control.recommendedColors.find( function( el ) {
-	// 				return el.color._color === item.color._color;
-	// 			} );
-
-	// 			// Only add if the color is not already in the array.
-	// 			if ( 4.5 < item.contrastBackground && undefined === colorAlreadyInArray ) {
-	// 				control.recommendedColors.push( item );
-	// 			}
-	// 		}
-	// 	} );
-
-	// 	// Add fallbacks in case we couldn't find any colors.
-	// 	if ( ! control.recommendedColors.length ) {
-	// 		const item = {
-	// 			color: Color( {
-	// 				h: hue,
-	// 				s: 50,
-	// 				l: 50
-	// 			} ).getReadableContrastingColor( backgroundColor )
-	// 		};
-	// 		item.contrastBackground = item.color.getDistanceLuminosityFrom( backgroundColor );
-	// 		item.contrastText = item.color.getDistanceLuminosityFrom( textColor );
-	// 		item.score = control.getConstrastScore( item.contrastBackground, item.contrastText );
-
-	// 		control.recommendedColors.push( item );
-	// 	}
-
-	// 	control.recommendedColors.sort( function( a, b ) {
-	// 		return b.score - a.score;
-	// 	} );
-
-	// 	return control.recommendedColors;
-	// },
 
 	// Get an array of Color objects for recommended colors for this hue.
 	getRecommendedColors( checkHue ) {
-		const control = this;
-		const backgroundColor = Color( control.getBackgroundColor() );
-		const textColor = Color( control.getTextColor() );
-		const isDarkBackground = '#000000' !== backgroundColor.getMaxContrastColor().toCSS();
+		const control = this,
+		 backgroundColor = Color( control.getBackgroundColor() ),
+		 textColor = Color( control.getTextColor() ),
+		 isDarkBackground = '#000000' !== backgroundColor.getMaxContrastColor().toCSS();
 		let lightnessSteps = ( isDarkBackground ) ? [ 80, 78, 77, 76, 75, 73, 71, 68, 65, 61, 57 ] : [ 20, 22, 23, 24, 25, 27, 29, 32, 35, 39, 43 ];
 		if ( control.params.choices.lightnessSteps ) {
 			lightnessSteps = ( isDarkBackground ) ? control.params.choices.lightnessSteps[ 1 ] : control.params.choices.lightnessSteps[ 0 ];
@@ -443,31 +270,6 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 			} );
 		} );
 
-		// for ( let saturation = 50; saturation <= 100; saturation += stepSaturation ) {
-		// 	for ( let lightness = minL; lightness <= maxL; lightness += stepLightness ) {
-		// 		const item = {
-		// 			color: Color( {
-		// 				h: hue,
-		// 				s: saturation,
-		// 				l: lightness
-		// 			} )
-		// 		};
-		// 		item.contrastBackground = item.color.getDistanceLuminosityFrom( backgroundColor );
-		// 		item.contrastText = item.color.getDistanceLuminosityFrom( textColor );
-		// 		item.score = control.getConstrastScore( item.contrastBackground, item.contrastText );
-
-		// 		// Check if the color is already in our array.
-		// 		const colorAlreadyInArray = control.recommendedColors.find( function( el ) {
-		// 			return el.color._color === item.color._color;
-		// 		} );
-
-		// 		// Only add if the color is not already in the array.
-		// 		if ( 4.5 < item.contrastBackground && undefined === colorAlreadyInArray ) {
-		// 			control.recommendedColors.push( item );
-		// 		}
-		// 	}
-		// }
-
 		// Add fallbacks in case we couldn't find any colors.
 		if ( ! control.recommendedColors.length ) {
 			const item = {
@@ -492,8 +294,8 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 	},
 
 	getConstrastScore( backgroundContrast, textContrast ) {
-		const scoreB = ( backgroundContrast > 7 ) ? backgroundContrast - 7 : 7 - backgroundContrast;
-		const scoreT = ( textContrast > 3 ) ? textContrast - 3 : 3 - textContrast;
+		const scoreB = ( 7 < backgroundContrast ) ? backgroundContrast - 7 : 7 - backgroundContrast;
+		const scoreT = ( 3 < textContrast ) ? textContrast - 3 : 3 - textContrast;
 		return 100 / ( scoreB * scoreT );
 	},
 
@@ -517,11 +319,6 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		for ( let i = 0; i < allColors.length; i++ ) {
 			this.recommendedColorsFlat.push( allColors[ i ].color.toCSS() );
 		}
-	},
-
-	setMode( mode ) {
-		this.forcedMode = mode;
-		this.renderContent();
 	},
 
 	/**
@@ -562,41 +359,6 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		// No hue was found. Set it and return it.
 		return control.setHue( Color( control.setting.get() ).h() );
 	},
-
-	// setValue( val ) {
-	// 	const control = this;
-	// 	const currentVal = control.setting.get();
-
-	// 	if ( 'object' === typeof val ) {
-	// 		control.setHue( val.hsl.h );
-	// 		val = val.hex;
-	// 	}
-
-	// 	// Early exit if there's no change.
-	// 	if ( val === currentVal ) {
-	// 		return;
-	// 	}
-
-	// 	// If auto mode, set the color and early exit.
-	// 	if ( 'auto' === this.getMode() ) {
-	// 		control.setting.set( control.getAutoColor() );
-	// 		return;
-	// 	}
-
-	// 	// We're on recommended mode.
-	// 	if ( 'recommended' === this.getMode() ) {
-	// 		// if a number then we've got a hue.
-	// 		// We can simply save the auto-color.
-	// 		if ( ! isNaN( val ) ) {
-	// 			control.setHue( val );
-	// 			control.setting.set( control.getAutoColor() );
-	// 			return;
-	// 		}
-	// 	}
-
-	// 	// Save the value.
-	// 	control.setting.set( val );
-	// },
 
 	/**
 	 * Handle removal/de-registration of the control.
