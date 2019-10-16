@@ -2,16 +2,6 @@
 import reactCSS from 'reactcss';
 
 const WCAGLinkColorIndicator = ( props ) => {
-	const getRatingBackgroundColor = () => {
-		const rating = getRating();
-		if ( 'AAA' === rating ) {
-			return '#008a20';
-		}
-		if ( 'AA' === rating ) {
-			return '#187aa2';
-		}
-		return '#d63638';
-	};
 
 	// Get WCAG contrast with background.
 	const getContrastBackground = () => {
@@ -25,14 +15,32 @@ const WCAGLinkColorIndicator = ( props ) => {
 
 	// Get rating.
 	const getRating = () => {
-		if ( 7 <= getContrastBackground() && 3 <= getContrastSurroundingText() ) {
-			return 'AAA';
-		}
+		const underlined = props.control.params.choices.linksUnderlined;
+		const contrastBg = getContrastBackground();
+		const contrastSt = getContrastSurroundingText();
 
-		if ( 4.5 <= getContrastBackground() ) {
+		if ( 7 <= contrastBg && ( underlined || 3 <= contrastSt ) ) {
+			return 'AAA';
+		} else if ( 4.5 <= contrastBg && ( underlined || 3 <= contrastSt ) ) {
 			return 'AA';
+		} else if ( 3 <= contrastBg && ( underlined || 3 <= contrastSt ) ) {
+			return 'A';
 		}
-		return ' - ';
+		return '-';
+	};
+
+	const getRatingBackgroundColor = () => {
+		const rating = getRating();
+		switch ( rating ) {
+			case 'AAA':
+				return '#46B450';
+			case 'AA':
+				return '#00a0d2';
+			case 'A':
+				return '#ffb900';
+			default:
+				return '#dc3232';
+		}
 	};
 
 	// Styles.
@@ -50,7 +58,8 @@ const WCAGLinkColorIndicator = ( props ) => {
 				height: '30px',
 				'border-radius': '50%',
 				display: 'block',
-				'background-color': props.value
+				'background-color': props.value,
+				'box-shadow': '#000 2px 2px 5px -3px inset'
 			},
 
 			selectedColorIndicatorWrapper: {
@@ -96,15 +105,15 @@ const WCAGLinkColorIndicator = ( props ) => {
 			</div>
 			<table style={ styles.table }>
 				<tr>
-					<td style={ styles.td }>Rating</td>
+					<td style={ styles.td }>{ props.i18n.a11yRating }</td>
 					<td style={ styles.td }><span style={ styles.ratingIndicator }>{ getRating() }</span></td>
 				</tr>
 				<tr>
-					<td style={ styles.td }>Contrast with background</td>
+					<td style={ styles.td }>{ props.i18n.contrastBg }</td>
 					<td style={ styles.td }>{ getContrastBackground() }</td>
 				</tr>
 				<tr>
-					<td style={ styles.td }>Contrast with surrounding text</td>
+					<td style={ styles.td }>{ props.i18n.contrastSt }</td>
 					<td style={ styles.td }>{ getContrastSurroundingText() }</td>
 				</tr>
 			</table>

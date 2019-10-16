@@ -264,7 +264,7 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 				} );
 
 				// Only add if the color is not already in the array.
-				if ( 4.5 < item.contrastBackground && undefined === colorAlreadyInArray ) {
+				if ( 3 < item.contrastBackground && undefined === colorAlreadyInArray ) {
 					control.recommendedColors.push( item );
 				}
 			} );
@@ -287,16 +287,19 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		}
 
 		control.recommendedColors.sort( function( a, b ) {
-			return b.score - a.score;
+			return a.score - b.score;
 		} );
 
 		return control.recommendedColors;
 	},
 
 	getConstrastScore( backgroundContrast, textContrast ) {
-		const scoreB = ( 7 < backgroundContrast ) ? backgroundContrast - 7 : 7 - backgroundContrast;
-		const scoreT = ( 3 < textContrast ) ? textContrast - 3 : 3 - textContrast;
-		return 100 / ( scoreB * scoreT );
+		const control = this;
+		const scoreB = ( backgroundContrast > 7 ) ? backgroundContrast - 7 : 7 - backgroundContrast;
+		const scoreT = ( textContrast > 3 ) ? textContrast - 3 : 3 - textContrast;
+		return ( control.params.choices.linksUnderlined )
+			? scoreB * 100
+			: ( scoreB + ( scoreT * 1.1 ) ) * 100;
 	},
 
 	/**
