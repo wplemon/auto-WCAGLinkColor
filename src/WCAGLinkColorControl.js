@@ -175,7 +175,13 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 				control.recommendedColors = false;
 
 				const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
+				const noChange = val === control.setting.get();
+
 				control.setting.set( val );
+
+				if ( noChange ) {
+					control.renderContent();
+				}
 			}, 100 ) );
 		} );
 
@@ -188,7 +194,13 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 					control.recommendedColors = false;
 
 					const val = control.getAutoColor( parseInt( control.getHue(), 10 ), true );
+					const noChange = val === control.setting.get();
+
 					control.setting.set( val );
+
+					if ( noChange ) {
+						control.renderContent();
+					}
 				}, 100 ) );
 			} );
 		}
