@@ -104,6 +104,10 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		control.watchSetting( control.params.choices.textColor, 'textColor' );
 	},
 
+	getMode: function() {
+		return 'auto'
+	},
+
 	/**
 	 * Get the background color.
 	 *
