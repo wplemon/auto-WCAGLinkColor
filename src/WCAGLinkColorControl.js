@@ -245,9 +245,9 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 	// Get an array of Color objects for recommended colors for this hue.
 	getRecommendedColors( checkHue ) {
 		const control = this,
-		 backgroundColor = Color( control.getBackgroundColor() ),
-		 textColor = Color( control.getTextColor() ),
-		 isDarkBackground = '#000000' !== backgroundColor.getMaxContrastColor().toCSS();
+		backgroundColor = Color( control.getBackgroundColor() ),
+		textColor = Color( control.getTextColor() ),
+		isDarkBackground = '#000000' !== backgroundColor.getMaxContrastColor().toCSS();
 		let lightnessSteps = ( isDarkBackground ) ? [ 80, 78, 77, 76, 75, 73, 71, 68, 65, 61, 57 ] : [ 20, 22, 23, 24, 25, 27, 29, 32, 35, 39, 43 ];
 		if ( control.params.choices.lightnessSteps ) {
 			lightnessSteps = ( isDarkBackground ) ? control.params.choices.lightnessSteps[ 1 ] : control.params.choices.lightnessSteps[ 0 ];
@@ -255,7 +255,43 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		const saturationSteps = ( control.params.choices.saturationSteps ) ? ( control.params.choices.lightnessSteps ) : [ 40, 45, 50, 55, 60, 65, 67.5, 70, 72.5, 75, 77.5, 80, 82.5, 85, 87.5, 90, 92.5, 95, 97.5, 100 ];
 		const hue = ( 'undefined' !== typeof checkHue ) ? parseInt( checkHue ) : Color( control.setting.get() ).h();
 
+		const getForcedBGContrast = ( contrast ) => {
+			let color = Color( {
+				h: hue,
+				s: control.params.choices.forceSaturation || 60,
+				l: 50
+			} ).getReadableContrastingColor( backgroundColor, contrast );
+			return {
+				color: color,
+				contrastBackground: color.getDistanceLuminosityFrom( backgroundColor ),
+				contrastText: color.getDistanceLuminosityFrom( textColor ),
+				score: control.getConstrastScore(
+					color.getDistanceLuminosityFrom( backgroundColor ),
+					color.getDistanceLuminosityFrom( textColor )
+				)
+			};
+		}
+
 		control.recommendedColors = [];
+
+		if ( 'AAA' === control.params.choices.forceCompliance ) {
+			control.recommendedColors.push( getForcedBGContrast( 7 ) );
+			return control.recommendedColors;
+		}
+
+		if ( 'AA' === control.params.choices.forceCompliance ) {
+			control.recommendedColors.push( getForcedBGContrast( 4.5 ) );
+			return control.recommendedColors;
+		}
+
+		// Add the forced colors.
+		control.recommendedColors.push( getForcedBGContrast( 7 ) );
+		control.recommendedColors.push( getForcedBGContrast( 4.5 ) );
+
+		// Add a forced item for AAA compliance - background color only.
+		control.recommendedColors.push(
+
+		)
 
 		lightnessSteps.forEach( function( lightness ) {
 			saturationSteps.forEach( function( saturation ) {
