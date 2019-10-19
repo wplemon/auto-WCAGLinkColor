@@ -292,11 +292,6 @@ const WCAGLinkColorControl = wp.customize.Control.extend( {
 		control.recommendedColors.push( getForcedBGContrast( 7 ) );
 		control.recommendedColors.push( getForcedBGContrast( 4.5 ) );
 
-		// Add a forced item for AAA compliance - background color only.
-		control.recommendedColors.push(
-
-		)
-
 		lightnessSteps.forEach( function( lightness ) {
 			saturationSteps.forEach( function( saturation ) {
 				const item = {
